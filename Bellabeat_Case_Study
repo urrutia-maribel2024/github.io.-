@@ -1,0 +1,681 @@
+title: "BellaBeat_Case_Study"
+author: "Maribel Urrutia"
+date: "2024-07-2024"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# BellaBeat Analysis Case Study
+
+## Introduction
+
+### About the Company
+
+**Bellabeat**, founded by **Urška Sršen** and **Sando Mur** in 2013, is a high-tech company that creates health-focused smart products for women. Leveraging Sršen’s artistic background, Bellabeat designs beautifully crafted technology that informs and inspires women worldwide. Their products collect data on **activity**, **sleep**, **stress**, and **reproductive health**, empowering women with knowledge about their well-being and habits. Over the years, Bellabeat has expanded globally, opened offices, and launched multiple innovative products. They prioritize **digital marketing**, engaging consumers through platforms like **Google Search**, **Facebook**, **Instagram**, **Twitter**, and **YouTube**
+
+### Part 1: Ask
+
+**The Business Task :** In this case study we will analyze the usage of smart devices to attain insights into how consumers are actively using non-Bellabeat smart devices. We will also provide top-level recommendations for how these trends of smart devices in configuration to improve Bellabeat marketing strategy.
+
+#### 3 Trending Questions to further go our analysis:
+
+1.  What are some trends in smart device usage?
+2.  How could these trends apply to Bellabeat customers?
+3.  How could these trends influence Bellabeat marketing strategy?
+
+### Part 2 : Prepare
+
+#### Dataset
+
+The FitBit Fitness Tracker Data is a dataset available on Kaggle. It includes personal fitness tracker data collected from around thirty Fitbit users. The data covers physical activity, heart rate, and sleep monitoring at the minute level. Researchers can use this dataset to explore users’ habits.
+
+#### 18 csv files available in the dataset:
+
+1.  **dailyActivity_merged:** Contains information about users’ daily activity, including the number of steps walked, distance covered, intensity, and calories burned.
+
+2.  **dailyCalories_merged:** Provides the daily calorie burn for each user.
+
+3.  **dailyIntensities_merged:** Describes the intensity of daily activity for each user, categorized as Sedentary, Lightly Active, Fairly/Moderately Active, or Very Active.
+
+4.  **dailySteps_merged:** Records the number of steps walked by each user daily.
+
+5.  **heartrate_seconds_merged:** Logs heart rate data with exact date and time (available for 7 users only).
+
+6.  **hourlyCalories_merged:** Presents hourly calorie burn data for each user.
+
+7.  **hourlyIntensities_merged:** Includes hourly total and average intensity levels for each user.
+
+8.  **hourlySteps_merged:** Tracks the number of steps walked by each user hourly.
+
+9.  **minuteCaloriesNarrow_merged:** Provides minute-by-minute calorie burn data in long-form format.
+
+10. **minuteCaloriesWide_merged:** Offers minute-by-minute calorie burn data in wide-form format.
+
+11. **minuteIntensitiesNarrow_merged:** Measures intensity by minute for each user (long-form).
+
+12. **minuteIntensitiesWide_merged:** Measures intensity by minute for each user (wide-form).
+
+13. **minuteMETsNarrow_merged:** Calculates the ratio of energy used during physical activity to energy at rest, measured by minute.
+
+14. **minuteSleep_merged:** Logs sleep data by minute (available for 24 users only).
+
+15. **minuteStepsNarrow_merged:** Records the number of steps walked every minute (long-form).
+
+16. **minuteStepsWide_merged:** Records the number of steps walked every minute (wide-form).
+
+17. **sleepDay_merged:** Provides daily sleep information, including sleep count, total time asleep, and total time in bed for each user.
+
+18. **weightLogInfo_merged:** Tracks daily weight (in kilograms and pounds) and BMI (available for 8 users, with 5 reporting weight manually).
+
+#### Concerns about the Dataset
+
+Concerns about the Dataset:
+
+Sample Size: The dataset comprises approximately thirty users, which is relatively small. This limited sample size may include sampling bias which can be inaccurate to showcase a broader population.
+
+Demographic Information: The absence of the demographic details for the users raises concerns. Without this information, we cannot assess whether the sample adequately reflects diverse demographics.
+
+Temporal Limitations: The dataset covers a survey period of only two months. This short timeframe may impact the generalizability of findings, especially if user behaviors vary seasonally or over longer durations.
+
+Data Currency: Not being up-to-date could affect the relevance and applicability of the results.
+
+### Part 3: Process
+
+#### Data Tool for our Analysis
+
+We have chosen to utilize the R programming language for our analysis in the case study. We made this decision because R is user-friendly, capable of handling large datasets, and facilities visualization and sharing of findings with stakeholders.
+
+#### Installing Packages Relevant to R
+
+The following R packages will be used throughout the case study.
+
+-   Tidyverse
+
+-   Here
+
+-   Skimr
+
+-   Janitor
+
+-   Lubridate
+
+-   Dplyr
+
+-   Tidyr
+
+-   Ggplot2
+
+-   Egg
+
+We install some of these packages first and load them in the library.
+
+```{r}
+install.packages("tidyverse")
+install.packages("here")
+install.packages("skimr")
+install.packages("janitor")
+install.packages("lubridate")
+
+library(tidyverse)
+library(here)
+library(skimr)
+library(janitor)
+library(lubridate)
+```
+
+#### Relevant Imported Dataframe
+
+For our case study analysis, we have focused on three specific data frames due to the business task and certain constraints. These data frames are:
+
+1.  Daily_activity
+2.  Daily_sleep
+3.  Hourly_steps
+
+These data frames contain relevant information for our investigation.
+
+```{r}
+daily_activity <- dailyActivity_merged
+
+daily_sleep <- sleepDay_merged
+
+hourly_steps <- hourlySteps_merged
+```
+
+Let’s analyze the content and structure of the three selected data frames.
+
+```{r}
+head(daily_activity)
+str(daily_activity)
+
+head(daily_sleep)
+str(daily_sleep)
+
+head(hourly_steps)
+str(hourly_steps)
+
+```
+#### Cleaning the data
+
+To analyze the data frames, let’s calculate the number of unique users in each one. I had used the pipe function to combine all three data frames to determine any unique users.
+
+```{r}
+combined_unique_counts <- list(
+  daily_activity %>% summarise(n_unique = n_distinct(Id)),
+  daily_sleep %>% summarise(n_unique = n_distinct(Id)),
+ hourly_steps %>% summarise(n_unique = n_distinct(Id))
+)
+
+```
+
+We assess the data for any instances of duplication.
+
+```{r}
+daily_activity_sum <- sum(duplicated(daily_activity))
+
+daily_sleep_sum <- sum(duplicated(daily_sleep))
+
+hourly_steps_sum <- sum(duplicated(hourly_steps))
+
+```
+
+We identify three duplicate values within the daily_sleep data frame. Subsequently, we proceed to eliminate both duplicates and any NA (Not Available) values from each data frame.
+
+```{r}
+daily_activity <- daily_activity %>% 
+  distinct() %>% 
+  drop_na()
+head(daily_activity)
+
+daily_sleep <- daily_sleep %>% 
+  distinct() %>% 
+  drop_na()
+head(daily_sleep)
+
+hourly_steps <- hourly_steps %>% 
+  distinct() %>% 
+  drop_na()
+head(hourly_steps)
+
+```
+
+Let us run a quick check:
+
+```{r}
+sum(duplicated(daily_sleep))
+```
+
+To improve consistency and readability, we’ll ensure that each data frame’s column names are unique and composed solely of underscores, numbers, and letters. Additionally, we’ll convert all column names to lowercase.
+
+```{r}
+library(janitor)
+
+clean_names(daily_activity)
+clean_names(daily_sleep)
+clean_names(hourly_steps)
+
+daily_activity <- rename_with(daily_activity,tolower)
+daily_sleep <- rename_with(daily_sleep,tolower)
+hourly_steps <- rename_with(hourly_steps,tolower)
+
+```
+
+To ensure consistency in columns while merging the daily_activity and daily_sleep data frames, we standardize the date-time format for both. This step helps streamline the merging process and ensures accurate alignment of data points.
+
+```{r}
+daily_activity <- daily_activity %>% 
+  rename(date = activitydate) %>% 
+  mutate(date = as_date(date,format="%m/%d/%Y"))
+head(daily_activity)
+
+daily_sleep <- daily_sleep %>% 
+  rename(date = sleepday) %>% 
+  mutate(date = as_date(date,format="%m/%d/%Y %I:%M:%S %p",tz=Sys.timezone()))
+head(daily_sleep)
+
+```
+
+We apply the following steps to standardize the hourly_steps data frame. This ensures consistency and facilitates merging with other data frames.
+
+```{r}
+hourly_steps <- hourly_steps %>%
+
+rename(date_time = activityhour) %>%
+
+mutate(date_time = as.POSIXct(date_time,format="%m/%d/%Y %I:%M:%S %p",tz=Sys.timezone()))
+
+head(hourly_steps)
+```
+
+#### Merge the Required Data Frames
+
+To consolidate the daily_activity and daily_sleep data frames, we perform a merge operation using the id and date columns as primary keys. This ensures alignment of corresponding data points across both frames.
+
+```{r}
+daily_activity_sleep <- merge(daily_activity, daily_sleep, by=c("id","date"))
+head(daily_activity_sleep)
+
+```
+
+### Part 4: Analyze + Share
+
+After conducting an exhaustive exploration and preprocessing of the dataset, we proceed to the central analysis and visualization stage in this case study. The objective of this phase is to reveal significant insights from the data, which will enhance our comprehension of the business problem and provide guidance for essential recommendations.
+
+#### Visualization P1
+
+From the new data frame, at first, we calculate the average number of calories burned, average number of steps walked, and average time slept (in minutes) by each user per day.
+
+```{r}
+daily_average_data <- daily_activity_sleep %>% 
+  group_by(id) %>% 
+  summarise(mean_daily_cal=mean(calories),mean_daily_sleep=mean(totalminutesasleep),mean_daily_steps=mean(totalsteps))
+head(daily_average_data)
+
+```
+
+We categorize these users into three groups based on the specified criteria.
+
+|                             |                      |
+|-----------------------------|----------------------|
+| **mean_daily_cal**          | **Category of User** |
+| \>= 1540.000 & \<= 2376.659 | Casual               |
+| \>= 2376.660 & \<= 3205.925 | Active               |
+| \>= 3205.926 & \<= 3540.000 | Highly active        |
+
+```{r}
+user_type <- daily_average_data %>% 
+  mutate(user_type = case_when(
+    mean_daily_cal >= 1540.000 & mean_daily_cal <= 2376.659 ~ "casual",
+    mean_daily_cal >= 2376.660 & mean_daily_cal <= 3205.925 ~ "active",
+    mean_daily_cal >= 3205.926 & mean_daily_cal <= 3540.000 ~ "highly active"
+  ))
+head(user_type)
+```
+
+For better visualization, we’ll create a summary table in the form of a DataFrame that displays the percentage of each user type.
+
+```{r}
+user_type_percentage <- user_type %>% 
+  group_by(user_type) %>% 
+  summarise(total=n()) %>% 
+  mutate(totals = sum(total)) %>% 
+  group_by(user_type) %>% 
+  summarise(total_percentage = total/totals) %>% 
+  mutate(labels=scales::percent(total_percentage))
+View(user_type_percentage)
+
+```
+
+Let’s create a pie chart to visualize the distribution of users based on their average daily calories burned.
+
+```{r}
+
+install.packages("ggplot2")
+library(ggplot2)
+
+user_type_percentage %>% 
+  ggplot(aes(x="",y=total_percentage,fill=user_type))+
+  geom_bar(stat="identity",width=1)+
+  coord_polar("y",start=0)+
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid=element_blank(), 
+        axis.text.x=element_blank(),
+        plot.title=element_text(hjust=0.5,size=14,face="bold"))+
+  scale_fill_manual(values=c("#ffc5a6","#d8f7f2","#9a8c98")) +
+  geom_text(aes(label=labels),
+            position=position_stack(vjust=0.5))+
+  labs(title="User Type Distribution as per mean_daily_cal")
+
+```
+
+#### Visualization P2
+
+In the subsequent phase of our analysis, we aim to identify the most active and restful days of the week for users. We’ll achieve this by grouping data based on the date column and calculating average step counts and sleep duration per day of the week.
+
+```{r}
+weekdays_steps_sleep <- daily_activity_sleep %>% 
+  mutate(day_of_week=weekdays(date))
+
+weekdays_steps_sleep$day_of_week <- ordered(weekdays_steps_sleep$day_of_week,
+levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
+
+weekdays_steps_sleep <- weekdays_steps_sleep %>% 
+  group_by(day_of_week) %>% 
+  summarize(daily_steps=mean(totalsteps),daily_sleep=mean(totalminutesasleep))
+head(weekdays_steps_sleep)
+```
+
+Let’s visualize our findings with two sleek bar charts.
+
+```{r}
+install.packages("egg")
+library(egg)
+
+ggarrange(
+  ggplot(weekdays_steps_sleep,aes(day_of_week,daily_steps))+
+    geom_col(fill="#0d9494")+
+    geom_hline(yintercept=6000)+
+    labs(title="Daily steps vs day of week",x="",y="")+
+    theme(axis.text.x=element_text(angle=45,vjust=0.5,hjust=1)),
+  
+  ggplot(weekdays_steps_sleep,aes(day_of_week,daily_sleep))+
+    geom_col(fill="#801818")+
+    geom_hline(yintercept=420)+
+    labs(title="Minutes of sleep vs day of week",x="",y="")+
+    theme(axis.text.x=element_text(angle=45,vjust=0.5,hjust=1))
+)
+
+```
+
+#### Here are the key takeaways from our analysis:
+
+**Step Counts:** Users consistently meet the recommended daily step count of 6000 steps every day.
+
+**Sleep Duration:** Users achieve the recommended daily sleep duration (420 minutes) specifically on Wednesdays and Sundays.
+
+#### Visualization P3
+
+Let’s delve into the specific times when users are most active during the day. We’ll analyze the data to identify peak activity hours.
+
+```{r}
+hourly_steps <- hourly_steps %>% 
+  separate(date_time,into=c("date","time"),sep=" ") %>% 
+  mutate(date=ymd(date))
+
+hourly_steps <- hourly_steps %>% 
+  distinct() %>% 
+  drop_na()
+head(hourly_steps)
+
+```
+
+Let's create a sleek bar chart to visualize this data.
+
+```{r}
+hourly_steps %>%
+  group_by(time) %>%
+  summarize(average_steps=mean(steptotal)) %>%
+  ggplot()+
+  geom_col(mapping=aes(x=time,y=average_steps,fill=average_steps))+ 
+  labs(title="Hourly steps vs hour of day",x="",y="")+ 
+  scale_fill_gradient(low="skyblue",high="aquamarine")+
+  theme(axis.text.x=element_text(angle=90))
+
+```
+
+#### Here are the keys takeaways from our analysis:
+
+Users exhibit higher activity levels between 8:00 a.m. and 7:00 p.m., with notable spikes during lunchtime (12:00 p.m. to 2:00 p.m.) and in the evening (5:00 p.m. to 7:00 p.m.), peaking at 6:00 p.m.
+
+#### Visualization P4
+
+Next, we explore the correlation (if any) between average steps walked and calories burned.
+
+```{r}
+ggarrange(
+  ggplot(daily_activity_sleep,aes(x=totalsteps,y=calories))+
+    geom_jitter()+
+    geom_point(color="skyblue")+
+    geom_smooth(color="lightgreen")+
+    labs(title="Daily steps vs calories",x="Daily steps",y="Calories")+
+    theme(plot.title=element_text(size=14))
+)
+
+```
+
+#### Key Points
+
+The positive correlation seen in the scatterplot arises from the physiological link between the variables. Walking demands energy expenditure, directly tied to step count. More steps engage more muscles, necessitating additional energy.
+
+#### Visualization P5
+
+Let’s distill that information into a succinct format:
+
+High: Users who engage with their device for 21-31 days.
+
+Moderate: Users who use their device for 11-20 days.
+
+Low: Users who use their device for 1-10 days.
+
+```{r}
+daily_usage <- daily_activity_sleep %>% 
+  group_by(id) %>% 
+  summarise(days_used=sum(n())) %>% 
+  mutate(usage=case_when(
+    days_used >= 1 & days_used <= 10 ~ "low",
+    days_used >= 11 & days_used <= 20 ~ "moderate",
+    days_used >= 21 & days_used <= 31 ~ "high"
+  ))
+head(daily_usage)
+
+```
+
+Let’s create a concise summary table in a data frame format, showcasing the percentage of each user type:
+
+```{r}
+daily_usage_percentage <- daily_usage %>% 
+  group_by(usage) %>% 
+  summarise(total=n()) %>% 
+  mutate(totals = sum(total)) %>% 
+  group_by(usage) %>% 
+  summarise(total_percentage = total/totals) %>% 
+  mutate(labels=scales::percent(total_percentage))
+View(daily_usage_percentage)
+
+```
+
+We create a pie chart to illustrate how users utilize smart devices.
+
+```{r}
+daily_usage_percentage %>% 
+  ggplot(aes(x="",y=total_percentage,fill=usage))+
+  geom_bar(stat="identity",width=1)+
+  coord_polar("y",start=0)+
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid=element_blank(), 
+        axis.text.x=element_blank(),
+        plot.title=element_text(hjust=0.5,size=14,face="bold"))+
+  scale_fill_manual(values=c("#00aaff","#0088cc","#006699"),
+                    labels=c("High: 21-31 days","Low: 1-10 days","Moderate: 11-20 days")) +
+  geom_text(aes(label=labels),
+            position=position_stack(vjust=0.5))+
+  labs(title="User Type Distribution as per daily usage")
+
+```
+
+#### Visualization P6
+
+We proceed to determine the daily device usage duration by merging the data frames ‘daily_activity’ and ‘daily_usage’ using the ‘id’ as the primary key.
+
+```{r}
+daily_usage_merged <- merge(daily_activity,daily_usage,by=c("id"))
+head(daily_usage_merged)
+
+```
+
+We categorize users based on their daily device wear time:
+
+**Full-day** wearers
+
+**Less than half-day** wearers
+
+**More than half-day** wearers
+
+```{r}
+mins_worn <- daily_usage_merged %>% 
+  mutate(total_mins_worn = veryactiveminutes + fairlyactiveminutes + lightlyactiveminutes + sedentaryminutes) %>% 
+  mutate(percentage_mins_worn = (total_mins_worn/1440)*100) %>% 
+  mutate(worn = case_when(
+    percentage_mins_worn == 100 ~ "Full day",
+    percentage_mins_worn < 100 & percentage_mins_worn >= 50 ~ "More than half day",
+    percentage_mins_worn < 50 & percentage_mins_worn > 0 ~ "Less than half day"
+  ))
+head(mins_worn)
+
+```
+
+To enhance data presentation, we create four distinct data frames, each displaying the percentage of users falling into the following categories based on their smart device use.
+
+```{r}
+mins_worn_percentage <- mins_worn %>%
+  group_by(worn) %>%
+  summarise(total=n()) %>%
+  mutate(totals=sum(total)) %>%
+  group_by(worn) %>%
+  summarise(total_percentage = total/totals) %>%
+  mutate(labels=scales::percent(total_percentage))
+View(mins_worn_percentage)
+
+mins_worn_highuse <- mins_worn %>%
+  filter(usage=="high") %>%
+  group_by(worn) %>%
+  summarise(total=n()) %>%
+  mutate(totals = sum(total)) %>%
+  group_by(worn) %>%
+  summarise(total_percentage = total/totals) %>%
+  mutate(labels=scales::percent(total_percentage))
+View(mins_worn_highuse)
+
+mins_worn_moderateuse <- mins_worn %>%
+  filter(usage=="moderate") %>%
+  group_by(worn) %>%
+  summarise(total=n()) %>%
+  mutate(totals = sum(total)) %>%
+  group_by(worn) %>%
+  summarise(total_percentage = total/totals) %>%
+  mutate(labels=scales::percent(total_percentage))
+View(mins_worn_moderateuse)
+
+mins_worn_lowuse <- mins_worn %>%
+  filter(usage=="low") %>%
+  group_by(worn) %>%
+  summarise(total=n()) %>%
+  mutate(totals = sum(total)) %>%
+  group_by(worn) %>%
+  summarise(total_percentage = total/totals) %>%
+  mutate(labels=scales::percent(total_percentage))
+View(mins_worn_lowuse)
+
+```
+
+Let’s bring our results to life with captivating pie charts.
+
+```{r}
+ggplot(mins_worn_percentage,aes(x="",y=total_percentage,fill=worn)) +
+  geom_bar(stat="identity",width=1) +
+  coord_polar("y",start=0) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(), 
+        axis.text.x = element_blank(),
+        plot.title = element_text(hjust=0.5,size=14,face="bold"),
+        plot.subtitle = element_text(hjust=0.5)) +
+  scale_fill_manual(values=c("#ff32fe","#00ff80","#66cbfd")) +
+  geom_text(aes(label=labels),
+            position=position_stack(vjust=0.5),size=3.5) +
+  labs(title="Time Worn Daily",subtitle="All Users")
+
+
+ggplot(mins_worn_highuse,aes(x="",y=total_percentage,fill=worn)) +
+  geom_bar(stat="identity",width=1) +
+  coord_polar("y",start=0) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(), 
+        axis.text.x = element_blank(),
+        plot.title = element_text(hjust=0.5,size=14,face="bold"),
+        plot.subtitle = element_text(hjust=0.5), 
+        legend.position = "none") +
+  scale_fill_manual(values=c("#ff32fe","#00ff80","#66cbfd")) +
+  geom_text(aes(label=labels),
+            position=position_stack(vjust=0.5),size=3) +
+  labs(title="",subtitle="High Users")
+
+
+ggplot(mins_worn_moderateuse,aes(x="",y=total_percentage,fill=worn)) +
+  geom_bar(stat="identity",width=1) +
+  coord_polar("y",start=0) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(), 
+        axis.text.x = element_blank(),
+        plot.title = element_text(hjust=0.5,size=14,face="bold"), 
+        plot.subtitle = element_text(hjust=0.5),
+        legend.position = "none") +
+  scale_fill_manual(values=c("#ff32fe","#00ff80","#66cbfd")) +
+  geom_text(aes(label=labels),
+            position=position_stack(vjust=0.5),size=3) +
+  labs(title="",subtitle="Moderate Users") 
+
+ggplot(mins_worn_lowuse,aes(x="",y=total_percentage,fill=worn)) +
+  geom_bar(stat="identity",width=1) +
+  coord_polar("y",start=0) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(), 
+        axis.text.x = element_blank(),
+        plot.title = element_text(hjust=0.5,size=14,face="bold"), 
+        plot.subtitle = element_text(hjust=0.5),
+        legend.position = "none") +
+  scale_fill_manual(values=c("#ff32fe","#00ff80","#66cbfd")) +
+  geom_text(aes(label=labels),
+            position=position_stack(vjust=0.5),size=3) +
+  labs(title="",subtitle="Low Users")
+
+```
+
+### Part 5: Act
+
+#### Recommendations:
+
+**Personalized Activity Goals:**
+
+\- The smart device should allow users to set personalized activity goals based on their fitness levels and progress.
+
+\- Users should be able to adjust these goals as needed.
+
+\- This approach caters to the diverse user base, including active, casual, and highly active individuals.
+
+**Sleep Analysis and Recommendations:**
+
+\- Since users get the recommended amount of sleep only on two days of the week, the smart device should analyze sleep patterns.
+
+\- It should provide insights on sleep quality and offer personalized recommendations.
+
+\- These recommendations can help users improve their sleep consistency throughout the week.
+
+**Adaptive Workout Routines:**
+
+\- Considering users’ activity patterns (increased steps around lunchtime and in the evening), the smart device should offer adaptive workout routines.
+
+\- For example, quick, high-intensity workouts during lunch breaks and more relaxed, restorative exercises in the evening.
+
+#### Based on the insights provided, here are the key recommendations for the Bellabeat smart device:
+
+**Battery-Saving Mode:**
+
+Implement an automatic battery-saving mode.
+
+Enable it when the device detects that the user is not wearing it for the full day.
+
+This mode can reduce sensor updates, dim the display, and optimize power-hungry features to extend battery life.
+
+**Always-On Display Feature:**
+
+Consider adding an “always-on” display feature.
+
+Highly active users (who wear the device for more than half a day) would benefit from this.
+
+It allows quick glances at activity metrics without waking the display, minimizing battery drain.
